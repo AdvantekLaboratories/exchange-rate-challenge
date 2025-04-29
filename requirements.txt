@@ -1,1 +1,5 @@
-# Example packages: requests, beautifulsoup4, pandas, matplotlib
+beautifulsoup4==4.13.4
+matplotlib==3.10.1
+pandas==2.2.3
+Requests==2.32.3
+yfinance==0.2.57
