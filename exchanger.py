@@ -1,10 +1,8 @@
 import requests
-from bs4 import BeautifulSoup
 import sys
 from datetime import datetime
 import pandas as pd
 import os
-import argparse
 
 from plots import plot_data
 from parser import get_parser_args
