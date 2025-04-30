@@ -4,6 +4,10 @@ import sys
 from datetime import datetime
 import pandas as pd
 import os
+import argparse
+
+from plots import plot_data
+from parser import get_parser_args
 
 API_URL = "https://api.frankfurter.dev/v1"
 BASE_CURRENCY = "EUR"
@@ -69,7 +73,7 @@ def save_to_csv(data):
     else:
         print("📁 No new data to append.")
     
-def calculate_signal():
+def calculate_signal(plot=False):
     """Calculate 7-day moving average and generate recommendation."""
 
     df = pd.read_csv(CSV_FILE)
@@ -92,22 +96,19 @@ def calculate_signal():
     print(f"📈 Today's Rate: {rate:.2f}")
     print(f"💡 Recommendation: {signal}")
 
+    if plot:
+        plot_data(df)
+
 def main():
-    historical = fetch_historical_rate()
-    save_to_csv(historical)
+    # Parse arguments
+    args = get_parser_args()
 
-    if len(sys.argv) != 2:
-        print("Usage: python exchanger.py [fetch|recommend]")
-        sys.exit(1)
-
-    command = sys.argv[1].lower()
-
-    if command == "fetch":
+    # Perform actions based on arguments
+    if args.command == "fetch":
         fetch_today_rate()
-    elif command == "recommend":
-        calculate_signal()
-    else:
-        print("[✖] Unknown command. Use 'fetch' or 'recommend'.")
+    elif args.command == "recommend":
+        calculate_signal(plot=args.plot)
+    
 
 if __name__ == "__main__":
     main()
