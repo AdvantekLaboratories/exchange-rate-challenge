@@ -1,75 +1,25 @@
-# Advantek Laboratories – Test Assignment
+# Exchange Rate Tracker
 
-Welcome! This is a small coding challenge for potential student collaborators at Advantek Laboratories.
+## Installation
 
-We focus on solving real-world problems quickly and clearly, using prototypes to validate ideas before scaling. This exercise is designed to test your Python skills, problem-solving ability, and willingness to think beyond pure coding.
+```bash
+pip install -r requirements.txt
+```
 
----
+## Usage
 
-## 🔍 Assignment: Build a Simple Exchange Rate Tracker + Recommendation Tool
+See: `python exchanger.py --help`
 
-### 🧠 Goal
-Create a small Python command-line application that:
+## Development
 
-1. **Downloads the historical rates**
-2. **Fetches today's EUR/HUF exchange rate** from a public source
-3. **Appends the result** into a local `rates.csv` file
-4. **Calculates a trading signal** any recognized signal type is sufficent that you find online
-5. **Provides a basic trading recommendation** based on the calculated signal
+### Adding a Provider
 
----
+To add a new exchange rate provider, create a new file in the `providers` folder and define a class inside it that represents the provider. It’s recommended to name the file and the class inside it identically. The class constructor should accept a `str` type currency code, which it will later return values for. The class must also include a `current(self) -> CurrencyData` method that returns the current exchange rate, and a `history(self, from_: datetime.datetime, to: datetime.datetime) -> List[CurrencyData]` method that returns exchange rates for the specified time interval. Additionally, the class name should be added to the `__all__` variable in the `providers/__init__.py` file, and a `from .<file> import <class>` line must be included. After this, the program will recognize and be able to use the new provider.
 
-## ✅ Requirements
+### Adding a Strategy
 
-- **Web scraping**:
-  - Use any reliable public site
-  - Handle simple errors (e.g., network issues).
+To add a new strategy, create a new file in the `strategies` folder and define a class inside it that represents the strategy. It’s recommended to name the file and the class identically. The class constructor should accept a `List[CurrencyData]` type list of currency values. The class must also include a `show(self) -> None` method that analyzes the data received in the constructor, makes a recommendation based on it, and prints it to the console. Additionally, the class name should be added to the `__all__` variable in the `strategies/__init__.py` file, and a `from .<file> import <class>` line must be included. After this, the program will recognize and be able to use the new strategy.
 
-- **Data storage**:
-  - Store results in a local CSV file (`rates.csv`).
-  - Each entry should include: date, exchange rate.
+### Adding a Plotter
 
-- **Command-line usage**:
-  ```bash
-  $ python exchanger.py fetch
-  [✔] Stored rate: 388.23 HUF/EUR on 2025-04-25
-
-  $ python exchanger.py recommend
-  📊 7-day Moving Average: 387.50
-  📈 Today's Rate: 388.23
-  💡 Recommendation: BUY EUR
-  ```
-
-- **Clean, readable code**:
-  - Modular structure
-  - Meaningful comments where necessary
-
----
-
-## 🌟 Bonus (Optional)
-
-- Add a `--help` option with argument parsing
-- Create simple plots (e.g., historical rates vs moving average using `matplotlib`)
-- Dockerize your application (with a basic `Dockerfile`)
-- Publish extra features neatly in your repo
-
----
-
-## 📝 Submission
-
-- **Fork** this repository
-- Complete the assignment
-- **Open a pull request** with your solution
-
-If you cannot use GitHub for some reason, you may also email a `.zip` of your solution.
-
----
-
-## ⏳ Estimated Time
-
-The core assignment should take around **4–5 hours**.  
-Bonus tasks are optional and open-ended.
-
----
-
-## 🙌 Good luck, and have fun!
+To add a new plotter, create a new file in the `plotters` folder and define a class inside it that represents the plotter. It’s recommended to name the file and the class identically. The class constructor should accept a `List[CurrencyData]` type list of currency values. The class must also include a `show(self) -> None` method that visualizes the data received in the constructor. Additionally, the class name should be added to the `__all__` variable in the `plotters/__init__.py` file, and a `from .<file> import <class>` line must be included. After this, the program will recognize and be able to use the new plotter.
