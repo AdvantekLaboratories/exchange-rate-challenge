@@ -11,7 +11,7 @@ def get_parser_args():
     # Subcommand: 'recommend'
     recommend_parser = subparsers.add_parser("recommend", help="Calculate the trading recommendation based on the 7-day moving average")
     recommend_parser.add_argument(
-        "--plot", action="store_true", help="Enable plot of historical rates vs moving average"
+        "-p","--plot", action="store_true", help="Enable plot of historical rates vs moving average"
     )
 
     return parser.parse_args()

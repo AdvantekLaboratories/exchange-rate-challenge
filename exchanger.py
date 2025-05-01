@@ -13,39 +13,30 @@ TARGET_CURRENCY = "HUF"
 CSV_FILE = "rates.csv"
 
 def get_start_date():
-    """Get the start date from the CSV file or return a default date."""
+    """Gets the start date from the CSV file or returns a default date."""
     if os.path.exists(CSV_FILE):
         df = pd.read_csv(CSV_FILE, parse_dates=['date'])
         return df['date'].max().strftime('%Y-%m-%d')
-    else:
-        return 
+    return "2025-03-04"
 
-START_DATE = get_start_date() or "2025-03-04"
-END_DATE = datetime.now().strftime("%Y-%m-%d")
+START_DATE = get_start_date()
+END_DATE = datetime.today().strftime("%Y-%m-%d")
 
-def fetch_today_rate():
-    """Fetch today's EUR to HUF rate using Frankfurter API."""
+def fetch():
+    """Fetches and stores EUR/HUF exchange rate from START_DATE to END_DATE.
+    START_DATE is the last date in the CSV file or a default date.
+    If START_DATE == END_DATE, it fetches today's rate.
+    """
     try:
-        response = requests.get(f"{API_URL}/latest", params={"from": BASE_CURRENCY, "to": TARGET_CURRENCY})
-        response.raise_for_status()
+        response =  requests.get(f"{API_URL}/{START_DATE}..{END_DATE}", params={"from": BASE_CURRENCY, "to": TARGET_CURRENCY })
         data = response.json()
-        rate = data["rates"][TARGET_CURRENCY]
-        date = data["date"]
-        print(f"[✔] Stored rate: {rate:.2f} HUF/EUR on {date}")
-    except requests.RequestException as e:
-        print(f"[✖] Network error: {e}")
-        sys.exit(1)
-    except KeyError:
-        print("[✖] Unexpected API response format.")
-        sys.exit(1)
+        data = data["rates"]
 
-def fetch_historical_rate():
-    """Fetch historical EUR to HUF rate based on a date range using Frankfurter API.
-    If the rates.csv file contains data from the past, it will not be fetched from the API."""
-    try:
-        response = requests.get(f"{API_URL}/{START_DATE}..{END_DATE}", params={"from": BASE_CURRENCY, "to": TARGET_CURRENCY })
-        data = response.json()
-        return data["rates"]
+        save_to_csv(data)
+
+        today_date, today_rate = data.popitem()
+
+        print(f"[✔] Stored rate: {today_rate} HUF/EUR on {today_date}")
     except requests.RequestException as e:
         print(f"[✖] Network error: {e}")
         sys.exit(1)
@@ -54,8 +45,7 @@ def fetch_historical_rate():
         sys.exit(1)
 
 def save_to_csv(data):
-    """Append the fetched data to a CSV file using pandas."""
-    
+    """Appends the fetched data to a CSV file using pandas."""
     new_rows = []
     for date, rates in data.items():
         rate = rates[TARGET_CURRENCY]
@@ -70,32 +60,43 @@ def save_to_csv(data):
         print(f"📁 Appended {len(new_rows)} new rows to {CSV_FILE}")
     else:
         print("📁 No new data to append.")
-    
+        
 def calculate_signal(plot=False):
-    """Calculate 7-day moving average and generate recommendation."""
+    """Calculates 7-day moving average and generates recommendation."""
 
-    df = pd.read_csv(CSV_FILE)
-    df['date'] = pd.to_datetime(df['date'])
-    df.sort_values("date", inplace=True)
-    df['7ma'] = df['rate'].rolling(window=7).mean()
+    try:
+        insufficient_data = False
 
-    today = df.iloc[-1]
-    if len(df) < 7:
-        print("[!] Not enough data to calculate 7-day moving average.")
-        print(f"📈 Today's Rate: {today['rate']}")
-        print("💡 Recommendation: HOLD (Insufficient data)")
-        return
+        df = pd.read_csv(CSV_FILE)
+        df['date'] = pd.to_datetime(df['date'])
+        df.sort_values("date", inplace=True)
+        df['7ma'] = df['rate'].rolling(window=7).mean()
 
-    ma = today['7ma']
-    rate = today['rate']
-    signal = "BUY EUR" if rate > ma else "SELL EUR" if rate < ma else "HOLD"
+        today = df.iloc[-1]
+        if len(df) < 7:
+            insufficient_data = True
+            print("[!] Not enough data to calculate 7-day moving average.")
+            print(f"📈 Today's Rate: {today['rate']}")
+            print("💡 Recommendation: HOLD (Insufficient data)")
+            return
 
-    print(f"📊 7-day Moving Average: {ma:.2f}")
-    print(f"📈 Today's Rate: {rate:.2f}")
-    print(f"💡 Recommendation: {signal}")
+        ma = today['7ma']
+        rate = today['rate']
+        signal = "BUY EUR" if rate > ma else "SELL EUR" if rate < ma else "HOLD"
 
-    if plot:
-        plot_data(df)
+        print(f"📊 7-day Moving Average: {ma:.2f}")
+        print(f"📈 Today's Rate: {rate:.2f}")
+        print(f"💡 Recommendation: {signal}")
+
+        if plot and not insufficient_data:
+            plot_data(df)
+
+    except FileNotFoundError:
+        print(f"[✖] CSV file '{CSV_FILE}' not found. Run 'fetch' command first.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"[✖] An unexpected error occurred: {e}")
+        sys.exit(1)
 
 def main():
     # Parse arguments
@@ -103,7 +104,7 @@ def main():
 
     # Perform actions based on arguments
     if args.command == "fetch":
-        fetch_today_rate()
+        fetch()
     elif args.command == "recommend":
         calculate_signal(plot=args.plot)
     

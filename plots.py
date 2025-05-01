@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 def plot_data(df):
-    """Plot historical rates and 7-day moving average using matplotlib."""
+    """Plots historical rates and 7-day moving average using matplotlib."""
     plt.figure(figsize=(10, 6))
     
     # Plot historical rates
