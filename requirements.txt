@@ -1,1 +1,3 @@
-# Example packages: requests, beautifulsoup4, pandas, matplotlib
+requests
+beautifulsoup4
+dash
